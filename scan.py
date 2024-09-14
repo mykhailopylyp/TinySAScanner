@@ -5,6 +5,7 @@ import serial
 # import struct
 import os
 from serial.tools import list_ports
+from bin_to_csv import bin_to_csv
 
 VID = 0x0483 #1155
 PID = 0x5740 #22336
@@ -110,6 +111,9 @@ class tinySA:
 				f.write(buffer)
 		
 		print(f"Signal data saved to {filename}.")
+		# Remove .bin extension and add .csv extension
+		csvfilename = filename[:-4] + ".csv"
+		bin_to_csv(filename, csvfilename, points, start_freq, end_freq)
 
 if __name__ == '__main__':
 	from optparse import OptionParser
