@@ -41,6 +41,30 @@ def average_snapshots(snapshots, num_snapshots, threshold=-50):
     # Compute the mean, ignoring NaN values
     return np.nanmean(valid_values, axis=0)
 
+def remove_local_minima(averaged_snapshot, threshold):
+    """
+    Removes local minima in the averaged snapshot that are above the specified threshold 
+    by replacing them with the average of their neighbors.
+    After replacing, the function starts from the i-1 point.
+    
+    :param averaged_snapshot: Array of averaged dBm values across all snapshots.
+    :param threshold: Minimum dBm value for local minima to be replaced.
+    :return: Modified snapshot with local minima removed.
+    """
+    i = 1  # Start from the second element
+    while i < len(averaged_snapshot) - 1:
+        print(i)
+        # Check if it's a local minimum and if it's above the threshold
+        if (averaged_snapshot[i] < averaged_snapshot[i - 1] and 
+            averaged_snapshot[i] < averaged_snapshot[i + 1] and 
+            averaged_snapshot[i] > threshold):
+            # Replace with the average of its neighbors
+            averaged_snapshot[i] = (averaged_snapshot[i - 1] + averaged_snapshot[i+1]) /2
+            # After modification, step back to i-1 to re-evaluate
+            i = max(1, i - 1)  # Ensure we don't go out of bounds
+        else:
+            i += 1  # Move to the next point only if no modification was made
+    return averaged_snapshot
 
 def find_carriers(frequencies, averaged_snapshot, threshold=-50):
     """
@@ -51,6 +75,9 @@ def find_carriers(frequencies, averaged_snapshot, threshold=-50):
     :param threshold: Minimum dBm value to be considered as part of a peak.
     :return: List of peak frequencies and number of carriers.
     """
+
+    averaged_snapshot = remove_local_minima(averaged_snapshot, threshold)
+    
     # Use a mask to ignore values below the threshold
     snapshot_masked = np.where(averaged_snapshot > threshold, averaged_snapshot, -np.inf)
 
@@ -87,8 +114,10 @@ def plot_averaged_snapshot_with_peaks(frequencies, averaged_snapshot, peak_frequ
 
 
 if __name__ == "__main__":
-    csv_file = "recordings/outputslowarm_start865000000.0_stop868000000.0_points100.csv"  # Path to the CSV file
-    num_snapshots = -1  # Specify the number of snapshots to average
+    # csv_file = "recordings/outputslowarm_start865000000.0_stop868000000.0_points100.csv"  # Path to the CSV file
+    # csv_file = "recordings\output1_start865000000.0_stop871000000.0_points200.csv"
+    csv_file = "recordings\outputfast_start865000000.0_stop871000000.0_points200.csv"
+    num_snapshots = 1000  # Specify the number of snapshots to average
     threshold_for_averaging = -40  # Only consider values above this threshold for averaging
 
     # Read the CSV file and extract frequency and snapshot data
