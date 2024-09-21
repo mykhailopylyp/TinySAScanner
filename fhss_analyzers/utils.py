@@ -69,3 +69,43 @@ def calculate_euclidean_distance(peak_frequencies, num_carriers=13, freq_range=(
     euclidean_distance = np.linalg.norm(carriers - actual_carriers)/num_carriers
     
     return euclidean_distance
+
+def ternary_search(f, left, right, tol=1e-6):
+    """
+    Performs a ternary search on a unimodal function to find the minimum value.
+    
+    Parameters:
+    - f: The function to minimize.
+    - left: The lower bound of the search interval.
+    - right: The upper bound of the search interval.
+    - tol: The tolerance (precision) for stopping the search.
+    
+    Returns:
+    - The point where the function is minimized within the specified tolerance.
+    """
+    while right - left > tol:
+        mid1 = left + (right - left) / 3
+        mid2 = right - (right - left) / 3
+        
+        f1 = f(mid1)
+        f2 = f(mid2)
+        
+        if f1 < f2:
+            right = mid2
+        else:
+            left = mid1
+    
+    return (left + right) / 2
+
+def scale_snapshots(snapshots):
+    # Calculate the minimum and maximum values along the last two axes (for each 2D snapshot)
+    min_vals = np.nanmin(snapshots, axis=1, keepdims=True)
+    max_vals = np.nanmax(snapshots, axis=1, keepdims=True)
+    # Prevent division by zero by setting max_vals equal to min_vals where they are equal
+    ranges = max_vals - min_vals
+    ranges[ranges == 0] = 1  # If min == max, set range to 1 to avoid division by zero
+
+    # Normalize the snapshots array using broadcasting
+    scaled_snapshots = (snapshots - min_vals) / ranges
+    
+    return scaled_snapshots
