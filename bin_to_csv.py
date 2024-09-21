@@ -43,7 +43,7 @@ def read_binary_file(input_file, snapshot_size, buffer_size):
                 yield snapshot_data
 
 
-def bin_to_csv(input_file, output_file, points, start_freq, stop_freq, buffer_size=10):
+def bin_to_csv(input_file, output_file, points, start_freq, stop_freq, scan_duration, buffer_size=10):
     """
     Parse binary data from a file and convert it to CSV, handling snapshots surrounded by {}.
     
@@ -100,7 +100,8 @@ def bin_to_csv(input_file, output_file, points, start_freq, stop_freq, buffer_si
                 # Write the snapshot dBm values to the CSV file
                 writer.writerow([f"Sweep {snapshot_count}"] + snapshot_values)
 
-    print(f"CSV file written to {output_file} with {snapshot_count} snapshots.")
+    scan_time = scan_duration / snapshot_count
+    print(f"CSV file written to {output_file} with {snapshot_count} snapshots. scan_time={scan_time}ms")
 
 
 if __name__ == "__main__":

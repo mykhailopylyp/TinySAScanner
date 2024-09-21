@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
 import serial
-# import numpy as np
-# import pylab as pl
-# import struct
 import os
+import time
 from serial.tools import list_ports
 from bin_to_csv import bin_to_csv
 
@@ -53,6 +50,8 @@ class tinySA:
 			self.serial.write("spur off\r".encode())
 
 		self.serial.readline()
+	def rbw(self, value):
+		self.send_command(f"rbw {value}\r")
 
 	def abort(self, command=None):
 		if (command):
@@ -70,7 +69,6 @@ class tinySA:
 
 		# Send the scanraw command to TinySA
 		self.send_command(f"scanraw {start_freq} {end_freq} {points} 3\r")
-
 		try:
 			while True:
 				# Read data from the serial port in chunks
@@ -97,6 +95,7 @@ class tinySA:
 		:param buffer_size: The size of the buffer (in bytes) for writing to the file.
 		"""
 		buffer = bytearray()  # Create an in-memory buffer
+		start_time = time.time() * 1000
 		with open(filename, "wb") as f:
 			for byte in self.scanraw(start_freq, end_freq, points):
 				buffer.append(byte)  # Add the chunk to the buffer
@@ -109,11 +108,11 @@ class tinySA:
 			# Write any remaining data in the buffer to the file
 			if buffer:
 				f.write(buffer)
-		
+		stop_time = time.time() * 1000
 		print(f"Signal data saved to {filename}.")
 		# Remove .bin extension and add .csv extension
 		csvfilename = filename[:-4] + ".csv"
-		bin_to_csv(filename, csvfilename, points, start_freq, end_freq)
+		bin_to_csv(filename, csvfilename, points, start_freq, end_freq, stop_time - start_time)
 
 if __name__ == '__main__':
 	from optparse import OptionParser
@@ -163,6 +162,7 @@ if __name__ == '__main__':
 		print("Fast scanning")
 		nv.spur(False)
 		nv.sweep("fast")
+		nv.rbw(300)
 	
 	print("Press Ctrl+C to stop scanning")
 	nv.save_signal_data(file_name, opt.start, opt.stop, opt.points)
